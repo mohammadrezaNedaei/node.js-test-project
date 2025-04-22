@@ -1,6 +1,7 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
 import { parse, UrlWithParsedQuery } from "url";
 import { handleReq } from "./tasks/tasks.controller";
+import { connectDB } from "./database/db";
 
 
 const server = createServer((req: IncomingMessage, res: ServerResponse) => {
@@ -13,5 +14,6 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
         res.end('Route not found!');
     }
 })
-
-server.listen(3000, () => console.log('Server running at http://localhost:3000'));
+connectDB().then(() =>{
+    server.listen(3000, () => console.log('Server running at http://localhost:3000'));
+})

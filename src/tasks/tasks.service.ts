@@ -1,50 +1,42 @@
+import { ITask, taskModel } from "../database/models/tasks.model";
 
-export interface Task {
-    id: number;
-    title: string;
+
+export interface Tasks {
+    tasks: ITask[];
+    totalCount: number;
+  }
+
+export async function getAll(skip: number = 0, take: number = 10): Promise<Tasks>{
+
+    const tasks = await taskModel.find()
+    .skip(skip)
+    .limit(take)
+    .lean()
+    .exec();
+
+    const totalCount = await taskModel.countDocuments().exec();
+
+    return {tasks: tasks, totalCount: totalCount}
 }
 
-export interface tasks {
-    tasks: Task[];
-    totalCount: number
-}
-
-export let tasks: Task[] = [];
-let idCounter: number = 0
-
-export function getAll(skip: number = 0, take: number = 10): tasks{
-
-    return {tasks: tasks.slice(skip, skip + take), totalCount: tasks.length};
-
-}
-
-export function getById(id: number): Task | null {
+export async function getById(id: string): Promise<ITask | null> {
     
-    const theId: number = tasks.findIndex((task) => {
-        return task.id === id; });
+    const task = await taskModel.findById({_id: id}).lean().exec();
 
-    if (theId === -1)
-        return null
-
-    return tasks[theId]; 
-}
-
-export function deleteById(id: number): Task | null{
-
-    const theId: number = tasks.findIndex((task) => {
-        return task.id === id; });
-
-    if (theId === -1)
-        return null
-
-    const task = { ...tasks[theId] };
-    tasks.splice(theId, 1);
     return task;
 }
 
-export function addTask(title : string): Task {
+export async function deleteById(id: string): Promise<ITask | null>{
 
-    const task: Task = {id: idCounter++, title: title}
-    tasks.push(task)
+    const task = await taskModel.findByIdAndDelete({_id: id}).lean().exec();
+    
+    return task;
+}
+
+export async function addTask(title : string): Promise<ITask | null> {
+
+    const task = new taskModel({title});
+
+    task.save();
     return task;
 }

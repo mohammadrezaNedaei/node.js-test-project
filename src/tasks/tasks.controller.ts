@@ -1,6 +1,6 @@
 import { IncomingMessage, ServerResponse } from "http";
 import { UrlWithParsedQuery } from "url";
-import { addTask, deleteById, getAll, getById } from "./tasks.service";
+import { addTask, deleteById, getAll, getById, Tasks } from "./tasks.service";
 
 function getBody(req: IncomingMessage): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -36,7 +36,7 @@ export async function handleReq(
 
     if(method === 'GET' && pathName === '/tasks'){
 
-        const response = getAll(query['skip'] ? parseInt(query['skip'] as string) : undefined, query['take'] ? parseInt(query['take'] as string) : undefined);
+        const response = await getAll(query['skip'] ? parseInt(query['skip'] as string) : undefined, query['take'] ? parseInt(query['take'] as string) : undefined);
 
         if(!response){
             res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -46,14 +46,14 @@ export async function handleReq(
         }
         
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({tasks: response.tasks, totalCount: response.totalCount}));
+        res.end(JSON.stringify({tasks: response.tasks, totalCount: response.totalCount} as Tasks));
     
         return true;
     }
 
     else if(method === 'GET' && pathName === '/task'){
 
-        const id = query['id'] ? parseInt(query['id'] as string) : undefined
+        const id = query['id']?.toString();
 
         if(!id){
             res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -61,7 +61,7 @@ export async function handleReq(
             return true;
         }
 
-        const task = getById(id);
+        const task = await getById(id);
 
         if (!task) {
             res.writeHead(404, { 'Content-Type': 'application/json' });
@@ -76,7 +76,7 @@ export async function handleReq(
 
     else if(method === 'DELETE' && pathName === '/deleteTask'){
 
-        const id = query['id'] ? parseInt(query['id'] as string) : undefined
+        const id = query['id']?.toString();
 
         if(!id){
             res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -84,7 +84,7 @@ export async function handleReq(
             return true;
         }
 
-        const task = deleteById(id);
+        const task = await deleteById(id);
 
         if (!task) {
             res.writeHead(404, { 'Content-Type': 'application/json' });
@@ -107,7 +107,7 @@ export async function handleReq(
                 return true;
               }
           
-              const task = addTask(title);
+              const task = await addTask(title);
           
               if (!task) {
                 res.writeHead(404, { 'Content-Type': 'application/json' });
